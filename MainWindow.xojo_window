@@ -333,9 +333,41 @@ End
 
 #tag WindowCode
 	#tag Event
+		Sub EnableMenuItems()
+		  select case activeMode
+		  case modes.Content ,  Modes.Schema
+		    
+		    FileOpen.Enabled = False
+		    FileClose.Enabled = true
+		    FileQuit.Enabled = true
+		    
+		    EditCopy.Enabled = true
+		    EditCopyheader.Enabled = true
+		    EditSelectAll.Enabled = true
+		    
+		    
+		  case modes.NoFileLoaded
+		    
+		    FileOpen.Enabled = true
+		    FileClose.Enabled = False
+		    FileQuit.Enabled = true
+		    
+		    EditCopy.Enabled = false
+		    EditCopyheader.Enabled = false
+		    EditSelectAll.Enabled = False
+		    
+		  end select
+		  
+		  
+		End Sub
+	#tag EndEvent
+
+	#tag Event
 		Sub Open()
-		  windowTitle = "SQLiteExplorer"
-		  activeMode = Modes.NoFileLoaded
+		  windowTitle = defaultTitle
+		  setMode(Modes.NoFileLoaded)
+		  
+		  
 		  
 		  
 		End Sub
@@ -361,6 +393,9 @@ End
 
 	#tag MenuHandler
 		Function FileClose() As Boolean Handles FileClose.Action
+			setMode(Modes.NoFileLoaded)
+			activeDB.Close
+			activeDB = nil
 			
 			Return True
 			
@@ -375,9 +410,21 @@ End
 			dim openOutcome as string = openDatabase(file2open)
 			if openOutcome <> "OK" then 
 			MsgBox openOutcome
-			return true
+			setMode(Modes.NoFileLoaded)
+			else
+			setMode(Modes.Content)
 			end if
 			
+			Return True
+			
+		End Function
+	#tag EndMenuHandler
+
+	#tag MenuHandler
+		Function FileQuit() As Boolean Handles FileQuit.Action
+			activeDB.Close
+			activeDB = nil
+			quit
 			Return True
 			
 		End Function
@@ -411,7 +458,7 @@ End
 		  
 		  if isnull(activeDB) = false then activeDB.close
 		  activeDB = db
-		  me.Title = windowTitle + " - " + activeDB.DatabaseFile.Name
+		  me.Title = defaultTitle + " - " + activeDB.DatabaseFile.Name
 		  
 		  dim tableSchema as RecordSet = activeDB.TableSchema
 		  if activeDB.Error = true then return "Error getting table schema : " + activeDB.ErrorMessage
@@ -451,6 +498,56 @@ End
 		  return join(fields , " , ")
 		  
 		End Function
+	#tag EndMethod
+
+	#tag Method, Flags = &h0
+		Sub setMode(mode as Modes)
+		  activeMode = mode
+		  
+		  select case mode
+		  case modes.Content
+		    
+		    DisplayModeSelector.Enabled = true
+		    encryptionKey.Enabled = false
+		    immediateSQL.Enabled = true
+		    MainList.Enabled = true
+		    refreshBtn.Enabled = true
+		    TableSelector.Enabled = true
+		    WHEREfield.Enabled = true
+		    
+		    
+		  case Modes.Schema
+		    
+		    DisplayModeSelector.Enabled = true
+		    encryptionKey.Enabled = false
+		    immediateSQL.Enabled = true
+		    MainList.Enabled = true
+		    refreshBtn.Enabled = true
+		    TableSelector.Enabled = true
+		    WHEREfield.Enabled = true
+		    
+		    
+		    
+		    
+		  case modes.NoFileLoaded
+		    
+		    DisplayModeSelector.Enabled = False
+		    encryptionKey.Enabled = true
+		    immediateSQL.Enabled = false
+		    immediateSQL.Text = ""
+		    MainList.DeleteAllRows
+		    MainList.Enabled = False
+		    refreshBtn.Enabled = false
+		    TableSelector.DeleteAllRows
+		    TableSelector.Enabled = False
+		    WHEREfield.Text = ""
+		    WHEREfield.Enabled = false
+		    
+		    
+		  end select
+		  
+		  
+		End Sub
 	#tag EndMethod
 
 	#tag Method, Flags = &h0
@@ -549,6 +646,10 @@ End
 	#tag EndProperty
 
 
+	#tag Constant, Name = defaultTitle, Type = String, Dynamic = False, Default = \"SQLiteExplorer", Scope = Public
+	#tag EndConstant
+
+
 	#tag Enum, Name = Modes, Type = Integer, Flags = &h0
 		Content
 		  Schema
@@ -565,8 +666,13 @@ End
 		  row = Me.RowFromXY(x,y)
 		  column = Me.ColumnFromXY(x,y)
 		  
-		  base.Append(new MenuItem("Copy cell content as is" , new pair("COPYNORMAL" , str(row)+","+str(column))))
-		  base.Append(new MenuItem("Copy Base64 decoded cell content" , new pair("COPYBASE64DEC" , str(row)+","+str(column))))
+		  select case activeMode
+		    
+		  case Modes.Content
+		    base.Append(new MenuItem("Copy cell content as is" , new pair("COPYNORMAL" , str(row)+","+str(column))))
+		    base.Append(new MenuItem("Copy Base64 decoded cell content" , new pair("COPYBASE64DEC" , str(row)+","+str(column))))
+		    
+		  end select
 		  
 		  return true
 		  
