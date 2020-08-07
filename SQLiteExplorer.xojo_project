@@ -1,6 +1,7 @@
 Type=Desktop
-RBProjectVersion=2019.01
+RBProjectVersion=2019.031
 MinIDEVersion=20070100
+OrigIDEVersion=00000000
 Class=App;App.xojo_code;&h000000000D714FFF;&h0000000000000000;false
 Window=MainWindow;MainWindow.xojo_window;&h00000000759C57FF;&h0000000000000000;false
 MenuBar=MainMenuBar;MainMenuBar.xojo_menu;&h0000000013E88FFF;&h0000000000000000;false
@@ -10,7 +11,7 @@ AppMenuBar=MainMenuBar
 MajorVersion=1
 MinorVersion=0
 SubVersion=0
-NonRelease=1
+NonRelease=2
 Release=0
 InfoVersion=
 LongVersion=
